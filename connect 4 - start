@@ -1,30 +1,73 @@
-
-
+import pygame
 import random
 import time
 import math
 
+# Define the colors
+PINK = (255, 105, 180)
+WHITE = (0, 0, 0)
+BLACK = (255, 255, 255)
+
+# Define the dimensions of the game board
 EMPTY = 0
+ROW_COUNT = 6
+COLUMN_COUNT = 7
 
-# function bet print el board
-def BoardState(board):
-    print("Current state of the board : \n")
+# Define the size of each cell in the game board
+SQUARE_SIZE = 100
 
-    for i in range(0, 6):
-        for j in range(0, 7):
-            if (board[i][j] == 0):
-                print("* ", end=" ") #law el makan fady
+# Define the size of the screen
+SCREEN_WIDTH = COLUMN_COUNT * SQUARE_SIZE
+SCREEN_HEIGHT = (ROW_COUNT + 1) * SQUARE_SIZE
 
-            if (board[i][j] == 1):
-                print("B ", end=" ") #law el makan feeh blue (agent)
+pygame.init()
 
-            if (board[i][j] == -1):
-                print("R ", end=" ") #law el makan feeh red (computer)
+# Initialize the Pygame screen
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Connect 4")
 
-        print("\n")
+# Define the position and size of the button
+button_x = 100
+button_y = 100
+button_width = 100
+button_height = 50
+
+# Define the color of the button
+button_color = (255, 0, 0)
+
+board = [[0]*7 for i in range(6)]
+
+# Method for drawing the game board and the game pieces on the screen
+def draw_board(board):
+    for row in range(ROW_COUNT):
+        for column in range(COLUMN_COUNT):
+            # Draw a pink rectangle for the cell
+            pygame.draw.rect(screen, PINK, (column * SQUARE_SIZE, (row + 1) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+            if board[row][column] == -1:
+                # Draw a white circle for player 1's game piece
+                pygame.draw.circle(screen, WHITE, (int(column * SQUARE_SIZE + SQUARE_SIZE / 2), int((row + 1) * SQUARE_SIZE + SQUARE_SIZE / 2)), int(SQUARE_SIZE / 2 - 5))
+            elif board[row][column] == 1:
+                # Draw a black circle for player 2's game piece
+                pygame.draw.circle(screen, BLACK, (int(column * SQUARE_SIZE + SQUARE_SIZE / 2), int((row + 1) * SQUARE_SIZE + SQUARE_SIZE / 2)), int(SQUARE_SIZE / 2 - 5))
+    pygame.display.update()
+
+# Method for dropping a game piece on the game board
+def drop_piece(board, row, column, piece):
+    board[row][column] = piece
+
+# Method for checking if a given column is a valid location for dropping a game piece
+def is_valid_location(board, column):
+    return board[ROW_COUNT - 1][column] == 0
+
+def GetValidLocations(board):
+    ValidLocations = []
+    for col in range(0, 7):
+        if (board[0][col] == 0):  # law la2et makan fady f akher row (el fo2 khales) fel column yeb2a keda valid location
+            ValidLocations.append(col)
+    return ValidLocations
 
 
-#betgebli awel row a2dar a7ott feeh el piece
+# betgebli awel row a2dar a7ott feeh el piece
 def FirstValidRow(board, col):
     for r in range(5, -1, -1):
         if (board[r][col] == 0):
@@ -32,23 +75,42 @@ def FirstValidRow(board, col):
     return -1
 
 
-# lamma ykoon dor el computer
-def ComputerTurn(board):
-    column = random.randint(0, 6) #choose a random column
-    #column = input("Select column [1-7]: ")
-    #column = int(column)
+#to check if someone won or of the game should continue
+def IsGameOver(board):
 
-    row = FirstValidRow(board, column)
-    if (row != -1):
-        board[row][column] = -1  # ba3addel fel board el asaseyya
+    #check horizontal
+    for i in range(0, 4):
+        for j in range(0, 6):
+            if (board[j][i] != 0):
+                color = board[j][i]
+                if (board[j][i] == color and board[j][i+1] == color and board[j][i+2] == color and board[j][i+3] == color):
+                    return color
 
+    #check vertical
+    for i in range(0, 7):
+        for j in range(0, 3):
+            if (board[j][i] != 0):
+                color = board[j][i]
+                if (board[j][i] == color and board[j+1][i] == color and board[j+2][i] == color and board[j+3][i] == color):
+                    return color
 
-def GetValidLocations(board):
-    ValidLocations = []
-    for col in range(0, 7):
-        if (board[0][col] == 0): #law la2et makan fady f akher row (el fo2 khales) fel column yeb2a keda valid location
-            ValidLocations.append(col)
-    return ValidLocations
+    #check diaganol (men fo2 3al shemal l ta7t 3al yemeen)
+    for i in range(0, 4):
+        for j in range(0, 3):
+            if (board[j][i] != 0):
+                color = board[j][i]
+                if (board[j][i] == color and board[j+1][i+1] == color and board[j+2][i+2] == color and board[j+3][i+3] == color):
+                    return color
+
+    # check diaganol (men fo2 3al yemeen l ta7t 3al shemal)
+    for i in range(0, 4):
+        for j in range(3, 6):
+            if (board[j][i] != 0):
+                color = board[j][i]
+                if (board[j][i] == color and board[j-1][i+1] == color and board[j-2][i+2] == color and board[j-3][i+3] == color):
+                    return color
+
+    return 0
 
 
 def evaluate_window(window, piece):
@@ -147,88 +209,78 @@ def Minimax(board, depth, MaxPlayer):
 
         return column, MaxEvaluation
 
-# lamma ykoon dor el agent
-def AgentTurn(board):
-
-    col, minimaxscore = Minimax(board, 3, True)
-
-    row = FirstValidRow(board, col)
-    board[row][col] = 1
 
 
-#to check if someone won or of the game should continue
-def IsGameOver(board):
+def run_game(board):
+    # Initialize Pygame
+    pygame.init()
+    font = pygame.font.Font(None, 36)
 
-    #check horizontal
-    for i in range(0, 4):
-        for j in range(0, 6):
-            if (board[j][i] != 0):
-                color = board[j][i]
-                if (board[j][i] == color and board[j][i+1] == color and board[j][i+2] == color and board[j][i+3] == color):
-                    return color
+    # Draw the Connect 4 board
+    draw_board(board)
 
-    #check vertical
-    for i in range(0, 7):
-        for j in range(0, 3):
-            if (board[j][i] != 0):
-                color = board[j][i]
-                if (board[j][i] == color and board[j+1][i] == color and board[j+2][i] == color and board[j+3][i] == color):
-                    return color
+    # Loop until the game is over
+    for i in range(0, 42):
+        # If the user clicks the mouse, drop a game piece in the clicked cell for the current player
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
 
-    #check diaganol (men fo2 3al shemal l ta7t 3al yemeen)
-    for i in range(0, 4):
-        for j in range(0, 3):
-            if (board[j][i] != 0):
-                color = board[j][i]
-                if (board[j][i] == color and board[j+1][i+1] == color and board[j+2][i+2] == color and board[j+3][i+3] == color):
-                    return color
+        time.sleep(1.5)
+        if (i % 2 == 0): #computer
+            # Draw the "Waiting for Agent" message to the screen
+            pygame.draw.rect(screen, (0, 0, 0), (10, 10, 270, 50))
+            text_surface = font.render("Waiting for Agent", True, (255, 255, 255))
+            screen.blit(text_surface, (10, 10))
+            pygame.display.update()
 
-    # check diaganol (men fo2 3al yemeen l ta7t 3al shemal)
-    for i in range(0, 4):
-        for j in range(3, 6):
-            if (board[j][i] != 0):
-                color = board[j][i]
-                if (board[j][i] == color and board[j-1][i+1] == color and board[j-2][i+2] == color and board[j-3][i+3] == color):
-                    return color
+            column = random.randint(0, 6)
+            row = FirstValidRow(board, column)
+            if (row != -1):
+                board[row][column] = -1  # ba3addel fel board el asaseyya
 
-    return 0
+        elif (i % 2 != 0): #Agent
+            # Draw the "Waiting for Computer" message to the screen
+            pygame.draw.rect(screen, (0, 0, 0), (10, 10, 270, 50))
+            text_surface = font.render("Waiting for Computer", True, (255, 255, 255))
+            screen.blit(text_surface, (10, 10))
+            pygame.display.update()
 
+            column, minimaxscore = Minimax(board, 3, True)
 
+            row = FirstValidRow(board, column)
+            board[row][column] = 1
 
-def main():
+        draw_board(board)
 
-    board = [[0]*7 for i in range(6)] #initialize el board kollaha b zero (amaken fadya)
+        if (IsGameOver(board) == 1 or IsGameOver(board) == -1):  # game over
+            if (IsGameOver(board) == 0):
+                # Draw the "IT'S A DRAW!" message to the screen
+                pygame.draw.rect(screen, (0, 0, 0), (10, 10, 270, 50))
+                text_surface = font.render("IT'S A DRAW!", True, (255, 255, 255))
+                screen.blit(text_surface, (10, 10))
+                pygame.display.update()
 
-    print("\n - Agent is BLUE (B), Computer is RED (R) - \n")
+            elif (IsGameOver(board) == 1):
+                # Draw the "WHITE (AGENT) WINS!" message to the screen
+                pygame.draw.rect(screen, (0, 0, 0), (10, 10, 270, 50))
+                text_surface = font.render("WHITE (AGENT) WINS!", True, (255, 255, 255))
+                screen.blit(text_surface, (10, 10))
+                pygame.display.update()
 
+            elif (IsGameOver(board) == -1):
+                # Draw the "BLACK (COMPUTER) WINS!" message to the screen
+                pygame.draw.rect(screen, (0, 0, 0), (10, 10, 270, 50))
+                text_surface = font.render("BLACK (COMPUTER) WINS!", True, (255, 255, 255))
+                screen.blit(text_surface, (10, 10))
+                pygame.display.update()
 
-    for i in range(0, 42): #42 possible moves (7*6)
-        if (i % 2 != 0):
-            BoardState(board)
-            print("Blue's turn! \n")
-            AgentTurn(board)
-            time.sleep(1.5)
-        else:
-            BoardState(board)
-            print("Red's turn! \n")
-            ComputerTurn(board)
-
-        if (IsGameOver(board) == 1 or IsGameOver(board) == -1):
+            time.sleep(5)
             break
 
 
-    x = IsGameOver(board)
-    if (x == 0):
-        BoardState(board)
-        print("IT'S A DRAW!")
-    if (x == -1):
-        BoardState(board)
-        print("RED WINS!")
-    if (x == 1):
-        BoardState(board)
-        print("BLUE WINS!")
+    # Quit Pygame when the game is over
+    #pygame.quit()
 
-
-main()
-
-
+run_game(board)
