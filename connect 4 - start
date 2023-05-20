@@ -209,6 +209,53 @@ def Minimax(board, depth, MaxPlayer):
 
         return column, MaxEvaluation
 
+
+def MinimaxAlphaBeta(board, depth, alpha, beta, MaxPlayer):
+
+    ValidLocations = GetValidLocations(board)
+    if (depth == 0 or IsGameOver(board) != 0):
+        if (IsGameOver(board) == -1):
+            return None, -10000000000
+        elif (IsGameOver(board) == 1):
+            return None, 10000000000
+        elif (depth == 0):
+            return None, score_position(board, 1)
+
+    column = random.choice(ValidLocations)
+
+    if (MaxPlayer):
+        MaxEvaluation = -math.inf
+        for col in ValidLocations:
+            row = FirstValidRow(board, col)
+            TempBoard = [row[:] for row in board]
+            TempBoard[row][col] = 1
+            NewScore = MinimaxAlphaBeta(TempBoard, depth - 1, alpha, beta, False)[1]
+            if (NewScore > MaxEvaluation):
+                MaxEvaluation = NewScore
+                column = col
+            alpha = max(alpha, MaxEvaluation)
+            if (beta <= alpha):
+                break
+        return column, MaxEvaluation
+
+    else:
+        MaxEvaluation = math.inf
+        for col in ValidLocations:
+            row = FirstValidRow(board, col)
+            TempBoard = [row[:] for row in board]
+            TempBoard[row][col] = -1
+            NewScore = MinimaxAlphaBeta(TempBoard, depth - 1, alpha, beta, False)[1]
+            if (NewScore < MaxEvaluation):
+                MaxEvaluation = NewScore
+                column = col
+            beta = min(beta, MaxEvaluation)
+            if (beta <= alpha):
+                break
+
+
+        return column, MaxEvaluation
+
+
 def run_game(board):
     # Initialize Pygame
     pygame.init()
@@ -307,7 +354,7 @@ def run_game(board):
             screen.blit(text_surface, (10, 10))
             pygame.display.update()
 
-            column, minimaxscore = Minimax(board, depth, True)
+            column, minimaxscore = MinimaxAlphaBeta(board, depth, -math.inf, math.inf, True)
 
             row = FirstValidRow(board, column)
             board[row][column] = 1
