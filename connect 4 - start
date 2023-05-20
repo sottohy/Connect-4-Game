@@ -1,3 +1,5 @@
+
+
 import random
 import time
 import math
@@ -17,7 +19,7 @@ def BoardState(board):
                 print("B ", end=" ") #law el makan feeh blue (agent)
 
             if (board[i][j] == -1):
-                print("R ", end=" ") #law el makan feeh red (user)
+                print("R ", end=" ") #law el makan feeh red (computer)
 
         print("\n")
 
@@ -28,6 +30,17 @@ def FirstValidRow(board, col):
         if (board[r][col] == 0):
             return r
     return -1
+
+
+# lamma ykoon dor el computer
+def ComputerTurn(board):
+    column = random.randint(0, 6) #choose a random column
+    #column = input("Select column [1-7]: ")
+    #column = int(column)
+
+    row = FirstValidRow(board, column)
+    if (row != -1):
+        board[row][column] = -1  # ba3addel fel board el asaseyya
 
 
 def GetValidLocations(board):
@@ -186,7 +199,7 @@ def main():
 
     board = [[0]*7 for i in range(6)] #initialize el board kollaha b zero (amaken fadya)
 
-    print("\n - Agent is BLUE (B), User is RED (R) - \n")
+    print("\n - Agent is BLUE (B), Computer is RED (R) - \n")
 
 
     for i in range(0, 42): #42 possible moves (7*6)
@@ -198,13 +211,7 @@ def main():
         else:
             BoardState(board)
             print("Red's turn! \n")
-            column = input("Select column [0-6]: ")
-            column = int(column)
-
-            row = FirstValidRow(board, column)
-            if (row != -1):
-                board[row][column] = -1  # ba3addel fel board el asaseyya
-
+            ComputerTurn(board)
 
         if (IsGameOver(board) == 1 or IsGameOver(board) == -1):
             break
