@@ -261,10 +261,63 @@ def run_game(board):
     pygame.init()
     font = pygame.font.Font(None, 36)
 
+    # Define the position and size of the buttons
+    MinimaxButton_x = 100
+    MinimaxButton_y = 300
+    MinimaxButton_width = 200
+    MinimaxButton_height = 70
+
+    AlphaBetaButton_x = 390
+    AlphaBetaButton_y = 300
+    AlphaBetaButton_width = 200
+    AlphaBetaButton_height = 70
+
     # Define the color of the buttons
     buttonColor = (255, 255, 255)
 
+
     DifficultyClicked = False
+    AlgorithmClicked = False
+
+    text_surface = font.render("Click left for Minimax and right for Alpha Beta", True, (255, 255, 255))
+    screen.blit(text_surface, (82, 200))
+    pygame.display.update()
+
+
+    # Loop until the user clicks the button
+    while True:
+        # Loop through all Pygame events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Get the position of the mouse cursor
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                # Check if the mouse cursor is hovering over the button
+                if (MinimaxButton_x < mouse_x < MinimaxButton_x + MinimaxButton_width and MinimaxButton_y < mouse_y < MinimaxButton_y + MinimaxButton_height):
+                    algorithm = 1 #minimax
+                    AlgorithmClicked = True
+                    break  # exit the loop when the minimax button is clicked
+
+                if (AlphaBetaButton_x < mouse_x < AlphaBetaButton_x + AlphaBetaButton_width and AlphaBetaButton_y < mouse_y < AlphaBetaButton_y + AlphaBetaButton_height):
+                    algorithm = 2 #alpha beta
+                    AlgorithmClicked = True
+                    break  # exit the loop when the alpha beta button is clicked
+
+        # Draw the button to the screen
+
+        pygame.draw.rect(screen, buttonColor, (MinimaxButton_x, MinimaxButton_y, MinimaxButton_width, MinimaxButton_height))
+        pygame.draw.rect(screen, buttonColor, (AlphaBetaButton_x, AlphaBetaButton_y, AlphaBetaButton_width, AlphaBetaButton_height))
+
+        # Update the display
+        pygame.display.update()
+
+        if (AlgorithmClicked == True):
+            break
+
+
 
     Easy_x = 250
     Easy_y = 300
@@ -354,7 +407,10 @@ def run_game(board):
             screen.blit(text_surface, (10, 10))
             pygame.display.update()
 
-            column, minimaxscore = MinimaxAlphaBeta(board, depth, -math.inf, math.inf, True)
+            if (algorithm == 1):
+                column, minimaxscore = Minimax(board, depth, True)
+            elif (algorithm == 2):
+                column, minimaxscore = MinimaxAlphaBeta(board, depth, -math.inf, math.inf, True)
 
             row = FirstValidRow(board, column)
             board[row][column] = 1
