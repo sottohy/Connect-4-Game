@@ -1,0 +1,227 @@
+import random
+import time
+import math
+
+EMPTY = 0
+
+# function bet print el board
+def BoardState(board):
+    print("Current state of the board : \n")
+
+    for i in range(0, 6):
+        for j in range(0, 7):
+            if (board[i][j] == 0):
+                print("* ", end=" ") #law el makan fady
+
+            if (board[i][j] == 1):
+                print("B ", end=" ") #law el makan feeh blue (agent)
+
+            if (board[i][j] == -1):
+                print("R ", end=" ") #law el makan feeh red (user)
+
+        print("\n")
+
+
+#betgebli awel row a2dar a7ott feeh el piece
+def FirstValidRow(board, col):
+    for r in range(5, -1, -1):
+        if (board[r][col] == 0):
+            return r
+    return -1
+
+
+def GetValidLocations(board):
+    ValidLocations = []
+    for col in range(0, 7):
+        if (board[0][col] == 0): #law la2et makan fady f akher row (el fo2 khales) fel column yeb2a keda valid location
+            ValidLocations.append(col)
+    return ValidLocations
+
+
+def evaluate_window(window, piece):
+    score = 0
+    opp_piece = -1
+    if piece == -1: #law el piece el 7aleya agent
+        opp_piece = 1 #hakhally el opponent el computer
+
+    if window.count(piece) == 4: #law la2et 4 pieces gamb ba3d bad hadeeh a3la score
+        score += 100
+    elif window.count(piece) == 3 and window.count(EMPTY) == 1: #law 3 pieces gamb ba3d w gambohom piece fadya hadeeh score a2al senna
+        score += 5
+    elif window.count(piece) == 2 and window.count(EMPTY) == 2: #law 2 pieces gamb ba3d w gambohom 2 pieces fadyeen hadeeh score a2al
+        score += 2
+
+    if window.count(opp_piece) == 3 and window.count(EMPTY) == 1: #law EL OPPONENT 3ando 3 pieces gamb ba3d w gambohom piece fadya hana22as el score gamed 3ashan di keda awash case
+        score -= 4
+
+    return score
+
+
+#calculate all scores for each possible move for each player during the play
+def score_position(board, piece):
+    score = 0
+
+    center_column = [row[7 // 2] for row in board]
+    center_array = [int(i) for i in center_column]
+    center_count = center_array.count(piece)
+    score += center_count * 3
+
+    #score horizontal
+    for r in range(0, 6):
+        row_array = [int(i) for i in board[r]]
+        for c in range(0, 4):
+            window = row_array[c:c+4]
+            score += evaluate_window(window, piece)
+
+    #score vertical
+    for c in range(0, 7):
+        col_array = [int(board[r][c]) for r in range(0, 6)]
+        for r in range(0, 3):
+            window = col_array[r:r+4]
+            score += evaluate_window(window, piece)
+
+    #score diagonal
+    for r in range(0, 3):
+        for c in range(0, 4):
+            window = [board[r + i][c + i] for i in range(0, 4)]
+            score += evaluate_window(window, piece)
+
+    #score diagonal
+    for r in range(0, 3):
+        for c in range(0, 4):
+            window = [board[r + 3 - i][c + i] for i in range(0, 4)]
+            score += evaluate_window(window, piece)
+
+    return score
+
+
+def Minimax(board, depth, MaxPlayer):
+
+    ValidLocations = GetValidLocations(board)
+    if (depth == 0 or IsGameOver(board) != 0):
+        if (IsGameOver(board) == -1):
+            return None, -10000000000
+        elif (IsGameOver(board) == 1):
+            return None, 10000000000
+        elif (depth == 0):
+            return None, score_position(board, 1)
+
+    column = random.choice(ValidLocations)
+
+    if (MaxPlayer):
+        MaxEvaluation = -math.inf
+        for col in ValidLocations:
+            row = FirstValidRow(board, col)
+            TempBoard = [row[:] for row in board]
+            TempBoard[row][col] = 1
+            NewScore = Minimax(TempBoard, depth - 1, False)[1]
+            if (NewScore > MaxEvaluation):
+                MaxEvaluation = NewScore
+                column = col
+
+        return column, MaxEvaluation
+
+    else:
+        MaxEvaluation = math.inf
+        for col in ValidLocations:
+            row = FirstValidRow(board, col)
+            TempBoard = [row[:] for row in board]
+            TempBoard[row][col] = -1
+            NewScore = Minimax(TempBoard, depth - 1, False)[1]
+            if (NewScore < MaxEvaluation):
+                MaxEvaluation = NewScore
+                column = col
+
+        return column, MaxEvaluation
+
+# lamma ykoon dor el agent
+def AgentTurn(board):
+
+    col, minimaxscore = Minimax(board, 3, True)
+
+    row = FirstValidRow(board, col)
+    board[row][col] = 1
+
+
+#to check if someone won or of the game should continue
+def IsGameOver(board):
+
+    #check horizontal
+    for i in range(0, 4):
+        for j in range(0, 6):
+            if (board[j][i] != 0):
+                color = board[j][i]
+                if (board[j][i] == color and board[j][i+1] == color and board[j][i+2] == color and board[j][i+3] == color):
+                    return color
+
+    #check vertical
+    for i in range(0, 7):
+        for j in range(0, 3):
+            if (board[j][i] != 0):
+                color = board[j][i]
+                if (board[j][i] == color and board[j+1][i] == color and board[j+2][i] == color and board[j+3][i] == color):
+                    return color
+
+    #check diaganol (men fo2 3al shemal l ta7t 3al yemeen)
+    for i in range(0, 4):
+        for j in range(0, 3):
+            if (board[j][i] != 0):
+                color = board[j][i]
+                if (board[j][i] == color and board[j+1][i+1] == color and board[j+2][i+2] == color and board[j+3][i+3] == color):
+                    return color
+
+    # check diaganol (men fo2 3al yemeen l ta7t 3al shemal)
+    for i in range(0, 4):
+        for j in range(3, 6):
+            if (board[j][i] != 0):
+                color = board[j][i]
+                if (board[j][i] == color and board[j-1][i+1] == color and board[j-2][i+2] == color and board[j-3][i+3] == color):
+                    return color
+
+    return 0
+
+
+
+def main():
+
+    board = [[0]*7 for i in range(6)] #initialize el board kollaha b zero (amaken fadya)
+
+    print("\n - Agent is BLUE (B), User is RED (R) - \n")
+
+
+    for i in range(0, 42): #42 possible moves (7*6)
+        if (i % 2 != 0):
+            BoardState(board)
+            print("Blue's turn! \n")
+            AgentTurn(board)
+            time.sleep(1.5)
+        else:
+            BoardState(board)
+            print("Red's turn! \n")
+            column = input("Select column [0-6]: ")
+            column = int(column)
+
+            row = FirstValidRow(board, column)
+            if (row != -1):
+                board[row][column] = -1  # ba3addel fel board el asaseyya
+
+
+        if (IsGameOver(board) == 1 or IsGameOver(board) == -1):
+            break
+
+
+    x = IsGameOver(board)
+    if (x == 0):
+        BoardState(board)
+        print("IT'S A DRAW!")
+    if (x == -1):
+        BoardState(board)
+        print("RED WINS!")
+    if (x == 1):
+        BoardState(board)
+        print("BLUE WINS!")
+
+
+main()
+
+
