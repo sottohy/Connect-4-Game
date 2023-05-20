@@ -209,12 +209,72 @@ def Minimax(board, depth, MaxPlayer):
 
         return column, MaxEvaluation
 
-
-
 def run_game(board):
     # Initialize Pygame
     pygame.init()
     font = pygame.font.Font(None, 36)
+
+    # Define the color of the buttons
+    buttonColor = (255, 255, 255)
+
+    DifficultyClicked = False
+
+    Easy_x = 250
+    Easy_y = 300
+    Easy_width = 200
+    Easy_height = 70
+
+    Medium_x = 250
+    Medium_y = 380
+    Medium_width = 200
+    Medium_height = 70
+
+    Hard_x = 250
+    Hard_y = 460
+    Hard_width = 200
+    Hard_height = 70
+
+    pygame.draw.rect(screen, (0, 0, 0), (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
+    text_surface = font.render("Select Easy, Medium, or Hard", True, (255, 255, 255))
+    screen.blit(text_surface, (180, 200))
+
+    while True:
+        # Loop through all Pygame events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+            # Check if the button has been clicked
+            elif (event.type == pygame.MOUSEBUTTONDOWN):
+                # Get the position of the mouse cursor
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                # Check if the mouse cursor is hovering over the button
+                if (Easy_x < mouse_x < Easy_x + Easy_width and Easy_y < mouse_y < Easy_y + Easy_height):
+                    depth = 1  # easy
+                    DifficultyClicked = True
+                    break  # exit the loop when the minimax button is clicked
+
+                if (Medium_x < mouse_x < Medium_x + Medium_width and Medium_y < mouse_y < Medium_y + Medium_height):
+                    depth = 2  # medium
+                    DifficultyClicked = True
+                    break  # exit the loop when the alpha beta button is clicked
+
+                if (Hard_x < mouse_x < Hard_x + Hard_width and Hard_y < mouse_y < Hard_y + Hard_height):
+                    depth = 3  # hard
+                    DifficultyClicked = True
+                    break  # exit the loop when the alpha beta button is clicked
+
+        # Draw the button to the screen
+        pygame.draw.rect(screen, buttonColor, (Easy_x, Easy_y, Easy_width, Easy_height))
+        pygame.draw.rect(screen, buttonColor, (Medium_x, Medium_y, Medium_width, Medium_height))
+        pygame.draw.rect(screen, buttonColor, (Hard_x, Hard_y, Hard_width, Hard_height))
+
+        # Update the display
+        pygame.display.update()
+
+        if (DifficultyClicked == True):
+            break
 
     # Draw the Connect 4 board
     draw_board(board)
@@ -247,7 +307,7 @@ def run_game(board):
             screen.blit(text_surface, (10, 10))
             pygame.display.update()
 
-            column, minimaxscore = Minimax(board, 3, True)
+            column, minimaxscore = Minimax(board, depth, True)
 
             row = FirstValidRow(board, column)
             board[row][column] = 1
