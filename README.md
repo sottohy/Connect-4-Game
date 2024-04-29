@@ -1,4 +1,4 @@
-# Connect4 game using Python with the Minimax and Alpha-Beta Pruning algorithms
+# Connect 4 game using Python with the Minimax and Alpha-Beta Pruning algorithms
 
 ## This code implements a Connect 4 game using the Pygame library in Python
 
