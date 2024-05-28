@@ -39,9 +39,9 @@ A Python implementation of Connect 4 using the Pygame library. The game includes
 - Quit: Close the game window to exit
 
 ## Initialization
-Colors and Dimensions: Defines colors, board dimensions, and cell sizes.
-Pygame Initialization: Sets up the Pygame window and caption.
-Board Initialization: Creates the game board as a 6x7 grid.
+- Colors and Dimensions: Defines colors, board dimensions, and cell sizes.
+- Pygame Initialization: Sets up the Pygame window and caption.
+- Board Initialization: Creates the game board as a 6x7 grid.
 
 ## Functions
 - draw_board(board): Draws the game board and pieces on the screen.
